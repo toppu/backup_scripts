@@ -16,10 +16,10 @@
 #-----------------------
 
 # send success or failure e-mails with details.
-#email_report="1"
+email_report="1"
 
 # email address to send mail to 
-#mail_to=""
+mail_to="suttipong@immpres.com"
 
 #-----------------------
 # General settings
@@ -49,13 +49,17 @@ date=`date +%Y-%m-%d`
 # backup archive file (archive_file-date.tgz format)
 archive_file_prefix="etc"
 
+# if the loggile should be deleted
+cleanup_log="1"
+
 ##################################
 # End configuration
 ##################################
 
 
-# backup archive file (!dont edit this parameter)
 archive_file="$archive_file_prefix-$date.tgz"
+LOGFILE=$backup_dir/$archive_file-`date +%H%M`.log       # Logfile Name
+LOGERR=$backup_dir/$archive_file-`date +%H%M`.error       # Logfile Name
 
 # 
 # show error message if a command failed
@@ -68,8 +72,6 @@ function error () {
     exit 0
 }
 
-STATUS=0
-
 # create required directories
 mkdir -p $backup_dir/{daily,weekly,monthly} || error 'failed to create $backup_dir directories'
 
@@ -77,10 +79,22 @@ mkdir -p $backup_dir/{daily,weekly,monthly} || error 'failed to create $backup_d
 month_day=`date +"%d"`
 week_day=`date +"%u"`
 
-# Optional check if source files exist. Email if failed.
-#if [ ! -f $source/archive.tgz ]; then
-#ls -l $source/ | mail your@email.com -s "[backup script] Daily backup failed! Please check for missing files."
-#fi
+# IO redirection for logging.
+touch $LOGFILE
+exec 6>&1           # Link file descriptor #6 with stdout.
+                    # Saves stdout.
+exec > $LOGFILE     # stdout replaced with file $LOGFILE.
+
+touch $LOGERR
+exec 7>&2           # Link file descriptor #7 with stderr.
+                    # Saves stderr.
+exec 2> $LOGERR     # stderr replaced with file $LOGERR.
+
+echo Backup of Files - $backup_target
+echo ----------------------------------------------------------------------
+echo Backup Start `date`
+echo ----------------------------------------------------------------------
+
 
 # It is logical to run this script daily. 
 # first day of a month
@@ -106,4 +120,34 @@ tar czf $backup_dir/$backup_type/$archive_file $backup_target || error 'failed t
 find $backup_dir/daily/ -maxdepth 1 -mtime +$rotation_lookup -type f -exec rm -rv {} \; || error 'failed to delete daily archive file'
 find $backup_dir/weekly/ -maxdepth 1 -mtime +$rotation_lookup -type f -exec rm -rv {} \; || error 'failed to create weekly archive file'
 find $backup_dir/monthly/ -maxdepth 1 -mtime +$rotation_lookup -type f -exec rm -rv {} \; || error 'failed to create monthly archive file'
+
+echo ----------------------------------------------------------------------
+echo Backup End Time `date`
+echo ----------------------------------------------------------------------
+
+echo Total disk space used for backup storage.
+echo Size - Location
+echo `du -hs "$backup_dir"`
+echo
+echo ======================================================================
+
+if [ $email_report -eq "1" ]; then
+    if [ -s "$LOGERR" ]; then
+        cat "$LOGERR" | mail -s "ERRORS REPORTED: Backup Log for $archive_file - $date" $mail_to
+    else
+        cat "$LOGFILE" | mail -s "Backup Log for $archive_file - $date" $mail_to
+    fi
+fi
+
+STATUS=0
+if [ -s "$LOGERR" ]; then
+    STATUS=1
+fi
+
+# Clean up Logfile
+if [ $cleanup_log -eq "1" ]; then
+rm -f "$LOGFILE" "$LOGERR"
+fi
+
+exit $STATUS
 
