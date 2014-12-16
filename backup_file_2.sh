@@ -56,7 +56,7 @@ cleanup_log="1"
 # End configuration
 ##################################
 
-
+file="$archive_file_prefix-$date"
 archive_file="$archive_file_prefix-$date.tgz"
 LOGFILE=$backup_dir/$archive_file-`date +%H%M`.log       # Logfile Name
 LOGERR=$backup_dir/$archive_file-`date +%H%M`.error       # Logfile Name
@@ -118,7 +118,7 @@ cp -r $backup_target $backup_dir/$archive_file
 
 # backup the files using tar
 cd $backup_dir 
-tar -zcvf $backup_type/$archive_file $archive_file || error 'failed to create $archive_file archive file'
+tar -zcvf $backup_type/$file $archive_file || error 'failed to create $archive_file archive file'
 
 # Cleanup
 rm -rf $backup_dir/$archive_file || error 'failed to delete tmp directory'
