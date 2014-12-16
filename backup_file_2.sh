@@ -73,7 +73,7 @@ function error () {
 }
 
 # create required directories
-mkdir -p $backup_dir/{daily,weekly,monthly} || error 'failed to create $backup_dir directories'
+mkdir -p $backup_dir/{daily,weekly,monthly,$archive_file} || error 'failed to create $backup_dir directories'
 
 # Get current month and week day number
 month_day=`date +"%d"`
@@ -113,8 +113,15 @@ else
   fi
 fi
 
+# copy files to the tmp directory before using tar
+cp -r $backup_target $backup_dir/$archive_file
+
 # backup the files using tar
-tar czf $backup_dir/$backup_type/$archive_file $backup_target || error 'failed to create $archive_file archive file'
+cd $backup_dir 
+tar czf $backup_type/$archive_file $archive_file || error 'failed to create $archive_file archive file'
+
+# Cleanup
+rm -rf $backup_dir/$archive_file || error 'failed to delete tmp directory'
 
 # delete old files
 find $backup_dir/daily/ -maxdepth 1 -mtime +$rotation_lookup -type f -exec rm -rv {} \; || error 'failed to delete daily archive file'
