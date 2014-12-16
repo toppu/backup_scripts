@@ -118,7 +118,7 @@ cp -r $backup_target $backup_dir/$archive_file
 
 # backup the files using tar
 cd $backup_dir 
-tar czf $backup_type/$archive_file $archive_file || error 'failed to create $archive_file archive file'
+tar -zcvf $backup_type/$archive_file $archive_file || error 'failed to create $archive_file archive file'
 
 # Cleanup
 rm -rf $backup_dir/$archive_file || error 'failed to delete tmp directory'
