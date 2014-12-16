@@ -21,6 +21,9 @@ email_report="1"
 # email address to send mail to 
 mail_to="suttipong@immpres.com"
 
+# email the list of backup files
+mail_info="1" 
+
 #-----------------------
 # General settings
 #-----------------------
@@ -117,8 +120,13 @@ fi
 cp -r $backup_target $backup_dir/$backup_files
 
 # backup the files using tar
+if [ $mail_info -eq "1"]; then
+  tar_opt="cvf"
+else
+  tar_opt="czf"
+fi
 cd $backup_dir 
-tar -cvf $backup_type/$archive_file $backup_files || error 'failed to create $archive_file archive file'
+tar $tar_opt $backup_type/$archive_file $backup_files || error 'failed to create $archive_file archive file'
 
 # Cleanup
 rm -rf $backup_dir/$backup_files || error 'failed to delete tmp directory'
