@@ -120,7 +120,7 @@ fi
 cp -r $backup_target $backup_dir/$backup_files
 
 # backup the files using tar
-if [ $mail_info -eq "1"]; then
+if [ $mail_info -eq "1" ]; then
   tar_opt="cvf"
 else
   tar_opt="czf"
