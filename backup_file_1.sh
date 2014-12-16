@@ -15,7 +15,7 @@ BACKUP_DIR="/backups/files"
 
 # Create archive filename.
 DAY=`date +%Y-%m-%d_%Hh%Mm`
-HOSTNAME="immpres"
+HOSTNAME="hostname -s"
 ARCHIVE_FILE="$HOSTNAME-$DAY.tgz"
 
 # Print start status message.
