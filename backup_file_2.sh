@@ -56,7 +56,7 @@ cleanup_log="1"
 # End configuration
 ##################################
 
-file="$archive_file_prefix-$date"
+backup_files="$archive_file_prefix-$date"
 archive_file="$archive_file_prefix-$date.tgz"
 LOGFILE=$backup_dir/$archive_file-`date +%H%M`.log       # Logfile Name
 LOGERR=$backup_dir/$archive_file-`date +%H%M`.error       # Logfile Name
@@ -73,7 +73,7 @@ function error () {
 }
 
 # create required directories
-mkdir -p $backup_dir/{daily,weekly,monthly,$archive_file} || error 'failed to create $backup_dir directories'
+mkdir -p $backup_dir/{daily,weekly,monthly,$backup_files} || error 'failed to create $backup_dir directories'
 
 # Get current month and week day number
 month_day=`date +"%d"`
@@ -114,14 +114,14 @@ else
 fi
 
 # copy files to the tmp directory before using tar
-cp -r $backup_target $backup_dir/$file
+cp -r $backup_target $backup_dir/$backup_files
 
 # backup the files using tar
 cd $backup_dir 
-tar -zcvf $backup_type/$archive_file $file || error 'failed to create $archive_file archive file'
+tar -zcvf $backup_type/$archive_file $backup_files || error 'failed to create $archive_file archive file'
 
 # Cleanup
-rm -rf $backup_dir/$file || error 'failed to delete tmp directory'
+rm -rf $backup_dir/$backup_files || error 'failed to delete tmp directory'
 
 # delete old files
 find $backup_dir/daily/ -maxdepth 1 -mtime +$rotation_lookup -type f -exec rm -rv {} \; || error 'failed to delete daily archive file'
