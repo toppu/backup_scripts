@@ -114,14 +114,14 @@ else
 fi
 
 # copy files to the tmp directory before using tar
-cp -r $backup_target $backup_dir/$archive_file
+cp -r $backup_target $backup_dir/tmp
 
 # backup the files using tar
 cd $backup_dir 
-tar czf $backup_type/$archive_file $archive_file || error 'failed to create $archive_file archive file'
+tar czf $backup_type/$archive_file tmp || error 'failed to create $archive_file archive file'
 
 # Cleanup
-rm -rf $backup_dir/$archive_file || error 'failed to delete tmp directory'
+rm -rf $backup_dir/tmp || error 'failed to delete tmp directory'
 
 # delete old files
 find $backup_dir/daily/ -maxdepth 1 -mtime +$rotation_lookup -type f -exec rm -rv {} \; || error 'failed to delete daily archive file'
