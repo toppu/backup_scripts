@@ -68,6 +68,8 @@ function error () {
     exit 0
 }
 
+STATUS=0
+
 # create required directories
 mkdir -p $backup_dir/{daily,weekly,monthly} || error 'failed to create $backup_dir directories'
 
@@ -80,37 +82,28 @@ week_day=`date +"%u"`
 #ls -l $source/ | mail your@email.com -s "[backup script] Daily backup failed! Please check for missing files."
 #fi
 
-# It is logical to run this script daily. We take files from source folder and move them to
-# appropriate destination (daily, weekly, monthly) folder
-
+# It is logical to run this script daily. 
 # first day of a month
 if [ "$month_day" -eq 1 ] ; then
   backup_type=monthly
-  rotation_lookup=rotation_month
+  rotation_lookup=$rotation_month
 else
   # On weekly basis
   if [ "$week_day" -eq "$doweekly" ] ; then
     backup_type=weekly
-    rotation_lookup=rotation_week
+    rotation_lookup=$rotation_week
   else
     # On any regular day do
     backup_type=daily
-    rotation_lookup=rotation_day
+    rotation_lookup=$rotation_day
   fi
 fi
 
 # backup the files using tar
-tar czf $backup_dir/$backup_type/$archive_file $backup_target
+tar czf $backup_dir/$backup_type/$archive_file $backup_target || error 'failed to create $archive_file archive file'
 
 # delete old files
-# find $backup_dir/ -maxdepth 1 -mtime +$rotation_lookup -name "$backup_type" -exec rm -rv {} \;
-
-# daily - keep for $rotation_day days
-find $backup_dir/daily/ -maxdepth 1 -mtime +$rotation_lookup -type d -exec rm -rv {} \;
-
-# weekly - keep for rotation_week days
-find $backup_dir/weekly/ -maxdepth 1 -mtime +$rotation_lookup -type d -exec rm -rv {} \;
-
-# monthly - keep for rotation_month days
-find $backup_dir/monthly/ -maxdepth 1 -mtime +$$rotation_lookup -type d -exec rm -rv {} \;
+find $backup_dir/daily/ -maxdepth 1 -mtime +$rotation_lookup -type f -exec rm -rv {} \; || error 'failed to delete daily archive file'
+find $backup_dir/weekly/ -maxdepth 1 -mtime +$rotation_lookup -type f -exec rm -rv {} \; || error 'failed to create weekly archive file'
+find $backup_dir/monthly/ -maxdepth 1 -mtime +$rotation_lookup -type f -exec rm -rv {} \; || error 'failed to create monthly archive file'
 
