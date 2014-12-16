@@ -19,7 +19,7 @@
 #email_report="1"
 
 # email address to send mail to 
-#mail_to="suttipong@immpres.com"
+#mail_to=""
 
 #-----------------------
 # General settings
