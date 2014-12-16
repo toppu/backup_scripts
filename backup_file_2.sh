@@ -3,7 +3,7 @@
 # version 0.1
 # 2014-12-15
 #
-#@author Suttipong Mungkala based on  
+#@author dentsuboy.bm at gmail.com 
 #@fork from @Julius Zaromskis(http://nicaw.wordpress.com/2013/04/18/bash-backup-rotation-script/)
 #@description File backup rotation
 
@@ -16,40 +16,60 @@
 #-----------------------
 
 # send success or failure e-mails with details.
-email_report="1"
+#email_report="1"
 
 # email address to send mail to 
-mail_to="suttipong@immpres.com"
+#mail_to="suttipong@immpres.com"
 
 #-----------------------
 # General settings
 #-----------------------
-# Storage folder where to move backup files
-# Must contain backup.monthly backup.weekly backup.daily folders
-#storage=/backups/test
 
-# Source folder where files are backed
-#source=$storage/incoming
-
-# what to backup
+# what to backup (each folder is separated by space)
 backup_target="/etc/postfix /etc/dovecot /etc/apache2 /etc/nginx /etc/php5"
 
 # backup directory
 backup_dir="/backups/files"
 
+# number of days the daily backup keep
+rotation_day=7
+
+# number of weeks the weekly backup keep
+rotation_week=4
+
+# number of months the monthly backup keep
+rotation_month=3
+
 # which day do you do weekly backups (1 to 7 where 1 is Monday)
 doweekly=6
 
 # backup date
-date=`date +%Y-%m-%d_%Hh%Mm`
+date=`date +%Y-%m-%d`
 
-# backup archive file
-archive_file="etc-$date.tgz"
+# backup archive file (archive_file-date.tgz format)
+archive_file_prefix="etc"
 
 ##################################
 # End configuration
 ##################################
 
+
+# backup archive file (!dont edit this parameter)
+archive_file="$archive_file_prefix-$date.tgz"
+
+# 
+# show error message if a command failed
+#
+function error () {
+    if [ -n "$1" ]; then
+        echo $1
+        exit 1
+    fi
+    exit 0
+}
+
+# create required directories
+mkdir -p $backup_dir/{daily,weekly,monthly} || error 'failed to create $backup_dir directories'
 
 # Get current month and week day number
 month_day=`date +"%d"`
@@ -61,30 +81,36 @@ week_day=`date +"%u"`
 #fi
 
 # It is logical to run this script daily. We take files from source folder and move them to
-# appropriate destination folder
+# appropriate destination (daily, weekly, monthly) folder
 
 # first day of a month
 if [ "$month_day" -eq 1 ] ; then
-  destination=monthly
+  backup_type=monthly
+  rotation_lookup=rotation_month
 else
   # On weekly basis
   if [ "$week_day" -eq "$doweekly" ] ; then
-    destination=weekly
+    backup_type=weekly
+    rotation_lookup=rotation_week
   else
     # On any regular day do
-    destination=daily
+    backup_type=daily
+    rotation_lookup=rotation_day
   fi
 fi
 
-# backup the files using tar.
-tar czf $backup_dir/$destination/$archive_file $backup_target
+# backup the files using tar
+tar czf $backup_dir/$backup_type/$archive_file $backup_target
 
-# daily - keep for 14 days
-find $backup_dir/daily/ -maxdepth 1 -mtime +14 -type d -exec rm -rv {} \;
+# delete old files
+# find $backup_dir/ -maxdepth 1 -mtime +$rotation_lookup -name "$backup_type" -exec rm -rv {} \;
 
-# weekly - keep for 60 days
-find $backup_dir/weekly/ -maxdepth 1 -mtime +60 -type d -exec rm -rv {} \;
+# daily - keep for $rotation_day days
+find $backup_dir/daily/ -maxdepth 1 -mtime +$rotation_lookup -type d -exec rm -rv {} \;
 
-# monthly - keep for 300 days
-find $$backup_dir/monthly/ -maxdepth 1 -mtime +300 -type d -exec rm -rv {} \;
+# weekly - keep for rotation_week days
+find $backup_dir/weekly/ -maxdepth 1 -mtime +$rotation_lookup -type d -exec rm -rv {} \;
+
+# monthly - keep for rotation_month days
+find $backup_dir/monthly/ -maxdepth 1 -mtime +$$rotation_lookup -type d -exec rm -rv {} \;
 
