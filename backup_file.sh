@@ -131,8 +131,10 @@ find $backup_dir/daily/ -maxdepth 1 -mtime +$rotation_lookup -type f -exec rm -r
 find $backup_dir/weekly/ -maxdepth 1 -mtime +$rotation_lookup -type f -exec rm -rv {} \; || error 'failed to create weekly archive file'
 find $backup_dir/monthly/ -maxdepth 1 -mtime +$rotation_lookup -type f -exec rm -rv {} \; || error 'failed to create monthly archive file'
 
+echo Deleting old backup file...completed
+
 # count number of files
-echo Total numer of files... `tar -tvf $backup_type/$archive_file | wc -l`
+echo Total numer of files... `tar -tvf $backup_type/$archive_file | wc -l` 
 
 echo ----------------------------------------------------------------------
 echo Backup End Time `date`
