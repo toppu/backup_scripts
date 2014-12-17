@@ -119,15 +119,21 @@ cp -r $backup_target $backup_dir/$backup_files
 
 # backup the files using tar
 cd $backup_dir 
-tar cvzf $backup_type/$archive_file $backup_files || error 'failed to create $archive_file archive file'
+tar czf $backup_type/$archive_file $backup_files || error 'failed to create $archive_file archive file'
+echo compression using tar...completed
 
 # Cleanup
 rm -rf $backup_dir/$backup_files || error 'failed to delete tmp directory'
+echo Cleaning up...completed
 
 # delete old files
 find $backup_dir/daily/ -maxdepth 1 -mtime +$rotation_lookup -type f -exec rm -rv {} \; || error 'failed to delete daily archive file'
 find $backup_dir/weekly/ -maxdepth 1 -mtime +$rotation_lookup -type f -exec rm -rv {} \; || error 'failed to create weekly archive file'
 find $backup_dir/monthly/ -maxdepth 1 -mtime +$rotation_lookup -type f -exec rm -rv {} \; || error 'failed to create monthly archive file'
+
+# count number of files
+echo Total files... 
+tar -tvf $backup_type/$archive_file | wc -l
 
 echo ----------------------------------------------------------------------
 echo Backup End Time `date`
